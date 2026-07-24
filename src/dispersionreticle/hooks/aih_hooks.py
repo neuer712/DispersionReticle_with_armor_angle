@@ -1,15 +1,14 @@
 import logging
 
 import BigWorld
+import Math
 import AvatarInputHandler
-from AvatarInputHandler import gun_marker_ctrl, aih_global_binding
+from AvatarInputHandler import gun_marker_ctrl, aih_global_binding, AimingSystems
 from aih_constants import GUN_MARKER_FLAG
 from constants import ARENA_PERIOD
 
-from dispersionreticle.controllers import AihUpdateType
 from dispersionreticle.utils import *
 from dispersionreticle.utils import debug_state
-from dispersionreticle.utils.reticle_registry import ReticleRegistry
 
 
 logger = logging.getLogger(__name__)
@@ -18,125 +17,51 @@ if debug_state.IS_DEBUGGING:
     logger.setLevel(logging.DEBUG)
 
 
-class _Descriptors(object):
+class _OneTickCache(object):
     gunMarkersFlags = aih_global_binding.bindRO(AvatarInputHandler._BINDING_ID.GUN_MARKERS_FLAGS)
     clientState = aih_global_binding.bindRW(AvatarInputHandler._BINDING_ID.CLIENT_GUN_MARKER_STATE)
     serverState = aih_global_binding.bindRW(AvatarInputHandler._BINDING_ID.SERVER_GUN_MARKER_STATE)
 
+    def __init__(self):
+        self.isClientModeEnabled = False
+        self.isServerModeEnabled = False
+        self.areBothModesEnabled = False
+        self.sniperViewportPosition = Math.Vector3()
+        self.dualAccuracy = None
 
-_descriptors = _Descriptors()
+    def updateCache(self):
+        gunMarkersFlag = self.gunMarkersFlags
+
+        self.isClientModeEnabled = gunMarkersFlag & GUN_MARKER_FLAG.CLIENT_MODE_ENABLED
+        self.isServerModeEnabled = gunMarkersFlag & GUN_MARKER_FLAG.SERVER_MODE_ENABLED
+        self.areBothModesEnabled = self.isClientModeEnabled and self.isServerModeEnabled
+
+        self.sniperViewportPosition = getSniperViewportPosition()
+        self.dualAccuracy = getDualAccuracy()
 
 
-# note to future myself
-#
-# don't try to be clever by slightly moving around vanilla logic
-# because it can backfire, when WG start to use return values of local-scope method invocations
-# and you cannot access them from outer method to which you moved said logic
-# ouch!
-
-
-# WG specific
-# Lesta specific
-#
-# differences in method signatures and code
-@overrideIn(AvatarInputHandler.AvatarInputHandler)
-def updateClientGunMarker(*args, **kwargs):
+def getDualAccuracy():
+    # WG specific
+    # different way of getting dual accuracy component in WoT 2.1.0.0
     if isClientWG():
-        wg_updateClientGunMarker(*args, **kwargs)
+        from DualAccuracy import DualAccuracy
+        from vehicles.mechanics.mechanic_constants import VehicleMechanic
+        from vehicles.mechanics.mechanic_helpers import getPlayerVehicleMechanicComponent
+
+        return getPlayerVehicleMechanicComponent(VehicleMechanic.DUAL_ACCURACY)  # type: DualAccuracy
     else:
-        lesta_updateClientGunMarker(*args, **kwargs)
+        from DualAccuracyBase import DualAccuracyBase, getPlayerVehicleDualAccuracy
+
+        return getPlayerVehicleDualAccuracy()  # type: DualAccuracyBase
 
 
-def wg_updateClientGunMarker(func, self, gunMarkerInfo, supportMarkersInfo, relaxTime):
-    from dispersionreticle.controllers.wg_gun_marker_decorator import WgDispersionGunMarkersDecorator
-    WgDispersionGunMarkersDecorator.currentUpdateType = AihUpdateType.CLIENT
-
-    if _areBothModesEnabled():
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            if not reticle.isServerReticle():
-                self._AvatarInputHandler__curCtrl.updateGunMarker(
-                    reticle.gunMarkerType, gunMarkerInfo, supportMarkersInfo, relaxTime
-                )
-    else:
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            self._AvatarInputHandler__curCtrl.updateGunMarker(
-                reticle.gunMarkerType, gunMarkerInfo, supportMarkersInfo, relaxTime
-            )
+def getSniperViewportPosition():
+    gunRotator = BigWorld.player().gunRotator
+    gunMatrix = AimingSystems.getPlayerGunMat(gunRotator.turretYaw, gunRotator.gunPitch)
+    return gunMatrix.translation
 
 
-def lesta_updateClientGunMarker(func, self, pos, direction, size, relaxTime, collData):
-    from dispersionreticle.controllers.lesta_gun_marker_decorator import LestaDispersionGunMarkersDecorator
-    LestaDispersionGunMarkersDecorator.currentUpdateType = AihUpdateType.CLIENT
-
-    if _areBothModesEnabled():
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            if not reticle.isServerReticle():
-                self._AvatarInputHandler__curCtrl.updateGunMarker(
-                    reticle.gunMarkerType, pos, direction, size, relaxTime, collData
-                )
-    else:
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            self._AvatarInputHandler__curCtrl.updateGunMarker(
-                reticle.gunMarkerType, pos, direction, size, relaxTime, collData
-            )
-
-
-# WG specific
-# Lesta specific
-#
-# differences in method signatures and code
-@overrideIn(AvatarInputHandler.AvatarInputHandler)
-def updateServerGunMarker(*args, **kwargs):
-    if isClientWG():
-        wg_updateServerGunMarker(*args, **kwargs)
-    else:
-        lesta_updateServerGunMarker(*args, **kwargs)
-
-
-def wg_updateServerGunMarker(func, self, gunMarkerInfo, supportMarkersInfo, relaxTime):
-    from dispersionreticle.controllers.wg_gun_marker_decorator import WgDispersionGunMarkersDecorator
-    WgDispersionGunMarkersDecorator.currentUpdateType = AihUpdateType.SERVER
-
-    if _areBothModesEnabled():
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            if reticle.isServerReticle():
-                self._AvatarInputHandler__curCtrl.updateGunMarker(
-                    reticle.gunMarkerType, gunMarkerInfo, supportMarkersInfo, relaxTime
-                )
-    else:
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            self._AvatarInputHandler__curCtrl.updateGunMarker(
-                reticle.gunMarkerType, gunMarkerInfo, supportMarkersInfo, relaxTime
-            )
-
-
-def lesta_updateServerGunMarker(func, self, pos, direction, size, relaxTime, collData):
-    from dispersionreticle.controllers.lesta_gun_marker_decorator import LestaDispersionGunMarkersDecorator
-    LestaDispersionGunMarkersDecorator.currentUpdateType = AihUpdateType.SERVER
-
-    if _areBothModesEnabled():
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            if reticle.isServerReticle():
-                self._AvatarInputHandler__curCtrl.updateGunMarker(
-                    reticle.gunMarkerType, pos, direction, size, relaxTime, collData
-                )
-    else:
-        for reticle in ReticleRegistry.ALL_RETICLES:
-            self._AvatarInputHandler__curCtrl.updateGunMarker(
-                reticle.gunMarkerType, pos, direction, size, relaxTime, collData
-            )
-
-
-def _areBothModesEnabled():
-    return _isClientModeEnabled() and _isServerModeEnabled()
-
-
-def _isClientModeEnabled():
-    return _descriptors.gunMarkersFlags & GUN_MARKER_FLAG.CLIENT_MODE_ENABLED
-
-
-def _isServerModeEnabled():
-    return _descriptors.gunMarkersFlags & GUN_MARKER_FLAG.SERVER_MODE_ENABLED
+g_oneTickCache = _OneTickCache()
 
 
 @overrideIn(AvatarInputHandler.AvatarInputHandler, condition=isClientWG)

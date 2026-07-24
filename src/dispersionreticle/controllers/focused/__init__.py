@@ -1,7 +1,6 @@
 import BigWorld
-from AvatarInputHandler import AimingSystems
 
-from dispersionreticle.utils import isClientWG
+from dispersionreticle.hooks.aih_hooks import g_oneTickCache
 
 
 def getFocusedDispersionSize(targetPos):
@@ -12,9 +11,7 @@ def getFocusedDispersionSize(targetPos):
     # but let's leave it commented as a last resort
     # gunPos = BigWorld.camera().position
 
-    gunPos = getSniperViewportPosition()
-
-    shotDir = targetPos - gunPos
+    shotDir = targetPos - g_oneTickCache.sniperViewportPosition
     shotDist = shotDir.length
 
     # gun dispersion per 1m unit
@@ -33,29 +30,12 @@ def getFocusedDispersionSize(targetPos):
     # actual dispersion per 1m unit
     dispersionAngle = gunDispersionAngle * shotDispMultiplierFactor
 
-    # WG specific
-    # different way of getting dual accuracy component in WoT 2.1.0.0
-    if isClientWG():
-        from DualAccuracy import DualAccuracy
-        from vehicles.mechanics.mechanic_constants import VehicleMechanic
-        from vehicles.mechanics.mechanic_helpers import getPlayerVehicleMechanicComponent
-
-        dualAccuracy = getPlayerVehicleMechanicComponent(VehicleMechanic.DUAL_ACCURACY)  # type: DualAccuracy
-    else:
-        from DualAccuracyBase import DualAccuracyBase, getPlayerVehicleDualAccuracy
-
-        dualAccuracy = getPlayerVehicleDualAccuracy()  # type: DualAccuracyBase
+    dualAccuracy = g_oneTickCache.dualAccuracy
     if dualAccuracy is not None:
         dispersionAngle *= dualAccuracy.getCurrentDualAccuracyFactor()
 
     # size is diameter that scales with distance
     return 2.0 * shotDist * dispersionAngle
-
-
-def getSniperViewportPosition():
-    gunRotator = BigWorld.player().gunRotator
-    gunMatrix = AimingSystems.getPlayerGunMat(gunRotator.turretYaw, gunRotator.gunPitch)
-    return gunMatrix.translation
 
 
 def getFocusedDispersionAngle():

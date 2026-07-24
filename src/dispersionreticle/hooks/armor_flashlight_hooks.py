@@ -1,9 +1,9 @@
 import logging
 
-import BigWorld
 from AvatarInputHandler import aih_global_binding, _BINDING_ID
 from aih_constants import GUN_MARKER_TYPE, GUN_MARKER_FLAG
 
+from dispersionreticle.hooks.aih_hooks import g_oneTickCache
 from dispersionreticle.utils import overrideIn, isClientWG
 from dispersionreticle.utils.reticle_registry import ReticleRegistry
 
@@ -47,24 +47,8 @@ if isClientWG():
     # - "Use server aim" is unchecked and some server reticle is enabled -> armor flashlight starts flickering
     #    but only during aim focusing - after aim focused, it stops flickering
 
-    lastUpdateTimeCache = {}
-
     @overrideIn(ArmorFlashlightBattleController)
     def _updateVisibilityState(func, self, markerType, gunMarkerState, *args, **kwargs):
-        # if Responsive Reticle mod is installed, armor flashlight is also updated much more often
-        # to the point that it can sometimes start flickering when using client+server reticles
-        #
-        # we will slightly slow down armor flashlight updates, so game engine can keep up with rendering
-        global lastUpdateTimeCache
-
-        if markerType in lastUpdateTimeCache:
-            lastUpdateTime = lastUpdateTimeCache[markerType]
-
-            if BigWorld.time() - lastUpdateTime < 0.1:
-                return
-
-        lastUpdateTimeCache[markerType] = BigWorld.time()
-
         # revert gunAimingCircleSize to original form, before being altered in gun marker controllers
         # by reticleSizeMultiplier, so armor flashlight stays independent of it
         reticleSizeMultiplier = ReticleRegistry.getReticleSizeMultiplierFor(gunMarkerType=markerType)
@@ -75,7 +59,7 @@ if isClientWG():
             initialSize = gunMarkerState.size / reticleSizeMultiplier
             gunMarkerState = gunMarkerState._replace(size=initialSize)
 
-        if _areBothModesEnabled():
+        if g_oneTickCache.areBothModesEnabled:
             if markerType == GUN_MARKER_TYPE.CLIENT:
                 func(self, markerType, gunMarkerState, *args, **kwargs)
         else:

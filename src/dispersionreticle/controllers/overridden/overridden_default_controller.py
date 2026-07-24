@@ -5,6 +5,7 @@ import constants
 from AvatarInputHandler.gun_marker_ctrl import _DefaultGunMarkerController, _makeWorldMatrix, _MARKER_FLAG
 from aih_constants import GUN_MARKER_TYPE
 
+from dispersionreticle.hooks.aih_hooks import g_oneTickCache
 from dispersionreticle.utils import isClientWG
 from dispersionreticle.utils.reticle_registry import ReticleRegistry
 
@@ -49,11 +50,6 @@ class OverriddenDefaultGunMarkerController(_DefaultGunMarkerController):
         self._DefaultGunMarkerController__currentSize = markerHelperScale(worldMatrix, size) * self._DefaultGunMarkerController__screenRatio
         self._DefaultGunMarkerController__currentSizeOffset = markerHelperScale(worldMatrix, gunMarkerInfo.sizeOffset) * self._DefaultGunMarkerController__screenRatio
 
-        # handle Responsive Reticle mod presence
-        # we have to call it BEFORE self._dataProvider.updateSizes(...) method
-        # otherwise we won't precisely know if we should skip updates as well
-        shouldUpdateExtendedReticleSize = self._shouldUpdateExtendedReticleSize()
-
         self._dataProvider.updateSizes(self._DefaultGunMarkerController__currentSize,
                                        self._DefaultGunMarkerController__currentSizeOffset,
                                        relaxTime,
@@ -61,8 +57,7 @@ class OverriddenDefaultGunMarkerController(_DefaultGunMarkerController):
         if self._DefaultGunMarkerController__offsetInertness == self._OFFSET_DEFAULT_INERTNESS:
             self._DefaultGunMarkerController__offsetInertness = self._OFFSET_SLOWDOWN_INERTNESS
 
-        if shouldUpdateExtendedReticleSize:
-            self._interceptPostUpdate(self._DefaultGunMarkerController__currentSize)
+        self._interceptPostUpdate(self._DefaultGunMarkerController__currentSize)
 
     def lesta_update(self, markerType, pos, direction, sizeVector, relaxTime, collData):
         super(_DefaultGunMarkerController, self).update(markerType, pos, direction, sizeVector, relaxTime, collData)
@@ -89,40 +84,13 @@ class OverriddenDefaultGunMarkerController(_DefaultGunMarkerController):
         self._DefaultGunMarkerController__sizeFilter.update(currentSize, idealSize)
         self._DefaultGunMarkerController__curSize = self._DefaultGunMarkerController__sizeFilter.getSize()
 
-        # handle Responsive Reticle mod presence
-        # we have to call it BEFORE self._dataProvider.updateSize(...) method
-        # otherwise we won't precisely know if we should skip updates as well
-        shouldUpdateExtendedReticleSize = self._shouldUpdateExtendedReticleSize()
-
         if self._DefaultGunMarkerController__replSwitchTime > 0.0:
             self._DefaultGunMarkerController__replSwitchTime -= relaxTime
             self._dataProvider.updateSize(self._DefaultGunMarkerController__curSize, 0.0)
         else:
             self._dataProvider.updateSize(self._DefaultGunMarkerController__curSize, relaxTime)
 
-        if shouldUpdateExtendedReticleSize:
-            self._interceptPostUpdate(self._DefaultGunMarkerController__curSize)
-
-    # ugly hack
-    # we are dependent on mod internal state, which already was a workaround - yikes!
-    def _shouldUpdateExtendedReticleSize(self):
-        # if either mod is not present or mod haven't stored timestamps yet, always update reticles
-        dataProviderSizeCache = getattr(BigWorld.player(), "_mod_dataProviderSizeCache", None)  # type: dict
-        if dataProviderSizeCache is None:
-            return True
-
-        # if this data provider doesn't have timestamps, it means it is most likely SPG data provider
-        # on which we don't want to skip updates
-        lastTime = dataProviderSizeCache.get(id(self._dataProvider), None)
-        if lastTime is None:
-            return True
-
-        # handle timeDiff the same way Responsive Reticle does
-        timeDiff = BigWorld.time() - lastTime
-        if timeDiff < constants.SERVER_TICK_LENGTH:
-            return False
-
-        return True
+        self._interceptPostUpdate(self._DefaultGunMarkerController__curSize)
 
     def isClientController(self):
         return not self._isServer
@@ -137,7 +105,7 @@ class OverriddenDefaultGunMarkerController(_DefaultGunMarkerController):
             if s != -1.0:
                 size = s
         elif replayCtrl.isRecording:
-            if self._areBothModesEnabled():
+            if g_oneTickCache.areBothModesEnabled:
                 # IMPORTANT
                 # when both client-side and server-side reticles are enabled
                 # we MUST write only server-side data, because
@@ -157,9 +125,6 @@ class OverriddenDefaultGunMarkerController(_DefaultGunMarkerController):
 
     def _interceptSize(self, size, pos):
         return size
-
-    def _isAnyModeEnabled(self):
-        return self._isClientModeEnabled() or self._isServerModeEnabled()
 
     def _areBothModesEnabled(self):
         return self._isClientModeEnabled() and self._isServerModeEnabled()

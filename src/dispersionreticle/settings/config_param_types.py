@@ -41,9 +41,9 @@ class Param(object):
         return readValue
 
     def __call__(self):
-        from dispersionreticle.settings.config_param import g_configParams
-
-        if not g_configParams.enabled.value:
+        # this avoids circular dependency
+        # and is faster than local import statement (yes, it has overhead)
+        if not PARAM_REGISTRY["enabled"].value:
             return self.disabledValue
         return self.value
 

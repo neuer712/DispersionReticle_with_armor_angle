@@ -134,20 +134,20 @@ class ReticleRegistry(object):
 
     ALL_RETICLES = [VANILLA_CLIENT, VANILLA_SERVER] + ADDITIONAL_RETICLES
 
-    @classmethod
-    def isAnyServerReticle(cls, gunMarkerType):
-        for reticle in cls.ALL_SERVER_RETICLES:
-            if reticle.gunMarkerType == gunMarkerType:
-                return True
-
-        return False
+    GUN_MARKER_TO_IS_SERVER_RETICLE = {}
 
     @classmethod
     def getReticleSizeMultiplierFor(cls, gunMarkerType):
         if g_configParams.reticleSizeScaleOnlyServerReticles():
-            if cls.isAnyServerReticle(gunMarkerType=gunMarkerType):
+            if cls.GUN_MARKER_TO_IS_SERVER_RETICLE[gunMarkerType]:
                 return g_configParams.reticleSizeMultiplier()
             else:
                 return 1.0
         else:
             return g_configParams.reticleSizeMultiplier()
+
+
+ReticleRegistry.GUN_MARKER_TO_IS_SERVER_RETICLE = {
+    reticle.gunMarkerType: True if reticle in ReticleRegistry.ALL_SERVER_RETICLES else False
+    for reticle in ReticleRegistry.ALL_RETICLES
+}
