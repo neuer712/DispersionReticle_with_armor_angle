@@ -115,6 +115,11 @@ class LestaDispersionGunMarkersDecorator(IGunMarkerController):
         isServerControllerUpdate = markerType == _MARKER_TYPE.SERVER
 
         for controller in self._allControllers:
+            # it is handled above
+            # must be, because it can be _EmptyGunMarkerController which doesn't have our methods
+            if controller == self.__dualAccController:
+                continue
+
             if controller.isServerController() == isServerControllerUpdate:
                 controller.setPosition(position)
 
