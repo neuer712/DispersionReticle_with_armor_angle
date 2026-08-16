@@ -1,12 +1,22 @@
 /*.wotmod
 /*.zip
-/*.pyc
-/*.py
+/**/*.pyc
 /.idea
 /*/*.xml
-/*.bat
+
+# build_wotmod.py's output directory - regenerable, not source
+/build/
 
 /versions/*
 /**/*.swf
 src_flash/*/obj/*
 target/**
+
+# personal-use only (hardcoded to one machine's WoT install path)
+/deploy.bat
+
+# third-party old reference mod, kept locally for analysis, not tracked
+/reference_old_reticle/
+
+# reference screenshots used for design discussion, not project source
+/reference_screenshots/

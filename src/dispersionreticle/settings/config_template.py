@@ -458,7 +458,52 @@ CONFIG_TEMPLATE = """{
         }
     },
 
+    // Armor angle (experimental, opt-in, whitelist-only)
+    //
+    // Shows a plain text HUD estimating, for a short whitelist of vehicles,
+    // what your OWN hull's armor incidence angle would be if an enemy were
+    // positioned along your current aim direction. Displayed as a grid of
+    // up to 8 slots at a FIXED screen position (left/right side upper+lower,
+    // left/right pike cheek, front upper+lower) - not dynamically tracking
+    // the reticle, since the reticle itself is already at a fixed screen
+    // spot in both sniper and arcade view.
+    //
+    // This is a rough approximation:
+    // - only vehicles with hand-filled armor data in the mod's whitelist are supported;
+    //   for any other vehicle, this HUD simply stays hidden
+    // - "equivalent thickness" ignores shell normalization and 3x caliber overmatch,
+    //   because the incoming shell's caliber is unknown
+    // - ignores terrain pitch (uphill/downhill), tracks/spaced armor
+
+    "armor-angle": {
+
+        // Valid values: true/false (default: false)
+        //
+        // If true, displays this HUD for whitelisted vehicles.
+        "enabled": %(armor-angle-enabled)s,
+
+        // Valid values: number between -1.0 and 1.0 (default: 0.0)
+        //
+        // Horizontal position of the HUD grid's center column, in screen
+        // clip space (-1 = left edge, 1 = right edge). 0 = horizontally centered.
+        "position-x": %(armor-angle-position-x)s,
+
+        // Valid values: number between -1.0 and 1.0 (default: -0.1)
+        //
+        // Vertical position of the HUD grid's row 1, in screen clip space
+        // (-1 = bottom edge, 1 = top edge). Row 2 is drawn further below this.
+        "position-y": %(armor-angle-position-y)s,
+
+        // Valid values: true/false (default: false)
+        //
+        // If false (default), each slot only shows the incidence angle
+        // number, or "RICOCHET" if it would ricochet.
+        // If true, also shows PEN/RICOCHET status text and the approximate
+        // effective thickness in mm - more detail, more clutter.
+        "debug-mode": %(armor-angle-debug-mode)s
+    },
+
     // DO NOT touch "__version__" field
     // It is used by me to seamlessly update config file :)
-    "__version__": 7
+    "__version__": 8
 }"""

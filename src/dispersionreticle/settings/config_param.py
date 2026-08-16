@@ -268,6 +268,26 @@ class ConfigParams(object):
             defaultValue=1.0
         )
 
+        # armor angle
+        self.armorAngleEnabled = BooleanParam(
+            ["armor-angle", "enabled"],
+            defaultValue=False
+        )
+        self.armorAnglePositionX = FloatTextParam(
+            ["armor-angle", "position-x"],
+            minValue=-1.0, maxValue=1.0,
+            defaultValue=0.0
+        )
+        self.armorAnglePositionY = FloatTextParam(
+            ["armor-angle", "position-y"],
+            minValue=-1.0, maxValue=1.0,
+            defaultValue=-0.1
+        )
+        self.armorAngleDebugMode = BooleanParam(
+            ["armor-angle", "debug-mode"],
+            defaultValue=False
+        )
+
     def items(self):
         return PARAM_REGISTRY.items()
 

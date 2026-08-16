@@ -17,8 +17,10 @@ class ConfigVersion(object):
     V2_6_X = 5
     V3_0_X = 6
     V3_1_X = 7
+    V3_2_X = 8
+    V3_3_X = 9
 
-    CURRENT = V3_1_X
+    CURRENT = V3_3_X
 
 
 def performConfigMigrations():
@@ -41,6 +43,8 @@ def performConfigMigrations():
 
         v3_0_0_addNewReticlesAndNewFeatures(configDict)
         v3_1_0_addScaleOnlyServerReticlesParam(configDict)
+        v3_2_0_addArmorAngle(configDict)
+        v3_3_0_addArmorAngleDebugModeAndFixedPosition(configDict)
 
         g_configFiles.config.writeConfigDict(configDict)
     except ConfigException:
@@ -248,6 +252,43 @@ def v3_1_0_addScaleOnlyServerReticlesParam(configDict):
     del configDict["reticle-size-multiplier"]
 
     configDict["reticle-size"]["scale-only-server-reticles"] = False
+
+    progressVersion(configDict)
+
+    logger.info("Migration finished.")
+
+
+def v3_2_0_addArmorAngle(configDict):
+    if not isVersion(configDict, ConfigVersion.V3_1_X):
+        return
+
+    logger.info("Migrating config file from version 3.1.x to 3.2.x ...")
+
+    configDict["armor-angle"] = {}
+    configDict["armor-angle"]["enabled"] = False
+    configDict["armor-angle"]["position-x"] = -0.85
+    configDict["armor-angle"]["position-y"] = 0.55
+
+    progressVersion(configDict)
+
+    logger.info("Migration finished.")
+
+
+def v3_3_0_addArmorAngleDebugModeAndFixedPosition(configDict):
+    if not isVersion(configDict, ConfigVersion.V3_2_X):
+        return
+
+    logger.info("Migrating config file from version 3.2.x to 3.3.x ...")
+
+    # position-x/position-y semantics changed from "absolute position" to a
+    # short-lived "offset from reticle" experiment and back to "absolute
+    # position" again (fixed screen spot, reticle-tracking turned out to be
+    # unstable) - reset to the new sensible defaults rather than keep the
+    # old corner-of-screen values, which would now put the HUD off in the
+    # top-left area instead of centered near the reticle.
+    configDict["armor-angle"]["position-x"] = 0.0
+    configDict["armor-angle"]["position-y"] = -0.1
+    configDict["armor-angle"]["debug-mode"] = False
 
     progressVersion(configDict)
 
