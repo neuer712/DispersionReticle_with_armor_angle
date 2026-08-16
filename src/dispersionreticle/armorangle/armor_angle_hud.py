@@ -15,11 +15,15 @@ _NEUTRAL_COLOUR = (220, 220, 220, 255)
 
 # maps armor_math color categories to actual GUI.Text colours - kept here
 # since armor_math.py stays GUI/BigWorld-free
+_COLOUR_SAFE = (70, 120, 230, 255)
+
 _COLOURS_BY_CATEGORY = {
     armor_math.COLOR_DANGER: (230, 60, 60, 255),
     armor_math.COLOR_WARNING: (230, 210, 60, 255),
-    armor_math.COLOR_SAFE: (70, 120, 230, 255),
-    armor_math.COLOR_RICOCHET: (190, 90, 220, 255),
+    armor_math.COLOR_SAFE: _COLOUR_SAFE,
+    # same blue as COLOR_SAFE, not purple - in practice purple and red were
+    # too easy to mix up in peripheral vision while actually playing
+    armor_math.COLOR_RICOCHET: _COLOUR_SAFE,
 }
 
 # each slot in armor_math.UI_SLOTS is its OWN GUI.Text component at a FIXED
