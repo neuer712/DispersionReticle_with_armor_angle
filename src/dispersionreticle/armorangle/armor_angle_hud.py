@@ -220,7 +220,7 @@ def _formatPlateText(assessment, debugMode):
         if assessment.apRicochet:
             return "RICOCHET"
         if assessment.approxEffectiveMm is not None:
-            return "~%dmm" % int(round(assessment.approxEffectiveMm))
+            return "%d" % int(round(assessment.approxEffectiveMm))
         return "-"
 
     status = "RICOCHET" if assessment.apRicochet else "PEN"
