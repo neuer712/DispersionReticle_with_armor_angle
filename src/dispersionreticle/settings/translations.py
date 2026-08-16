@@ -162,6 +162,14 @@ class Tr(object):
     SERVER_RETICLE_EXTENDED_BODY = TranslationList("serverReticleExtended.body")
     SERVER_RETICLE_EXTENDED_ATTENTION = TranslationList("serverReticleExtended.attention")
 
+    # armor angle
+    ARMOR_ANGLE_LABEL = TranslationElement("armorAngle.label")
+    ARMOR_ANGLE_HEADER = TranslationElement("armorAngle.header")
+    ARMOR_ANGLE_BODY = TranslationList("armorAngle.body")
+    ARMOR_ANGLE_ENABLED_BODY = TranslationList("armorAngle.enabled.body")
+    ARMOR_ANGLE_DEBUG_MODE_HEADER = TranslationElement("armorAngle.debugMode.header")
+    ARMOR_ANGLE_DEBUG_MODE_BODY = TranslationList("armorAngle.debugMode.body")
+
     # commons for reticles
     RETICLE_ENABLED_HEADER = TranslationElement("reticle.enabled.header")
     RETICLE_ENABLED_BODY = TranslationList("reticle.enabled.body")

@@ -34,7 +34,8 @@ def registerSoftDependencySupport():
             _createServerReticle() +
             _innerSectionSeparator() +
             _createServerReticleExtended() +
-            _endSection()
+            _endSection() +
+            _createArmorAngle()
     }
 
     # we purposely ignore ModsSettingsAPI capability of saving mod configuration
@@ -441,6 +442,27 @@ def _createHybridReticleExtended():
             header=Tr.RETICLE_EXTENDED_SHAPES_T_SHAPE_LENGTH_HEADER,
             body=Tr.RETICLE_EXTENDED_SHAPES_T_SHAPE_LENGTH_BODY + "\n",
             note=Tr.RETICLE_EXTENDED_SHAPES_T_SHAPE_LENGTH_NOTE
+        )
+    ]
+
+
+def _createArmorAngle():
+    return [
+        {
+            "type": "Label",
+            "text": Tr.ARMOR_ANGLE_LABEL,
+            "tooltip": createTooltip(
+                header=Tr.ARMOR_ANGLE_HEADER,
+                body=Tr.ARMOR_ANGLE_BODY
+            ),
+        },
+        g_configParams.armorAngleEnabled.renderParam(
+            header=Tr.RETICLE_ENABLED_HEADER,
+            body=Tr.ARMOR_ANGLE_ENABLED_BODY
+        ),
+        g_configParams.armorAngleDebugMode.renderParam(
+            header=Tr.ARMOR_ANGLE_DEBUG_MODE_HEADER,
+            body=Tr.ARMOR_ANGLE_DEBUG_MODE_BODY
         )
     ]
 

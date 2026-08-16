@@ -207,5 +207,23 @@
   ],
   "reticleExtended.shapes.t-shape.length.note": [
     "Negative values inverts direction of the line facing reticle center."
+  ],
+  "armorAngle.label": "Armor angle (experimental)",
+  "armorAngle.header": "Armor angle",
+  "armorAngle.body": [
+    "Shows a small HUD estimating your OWN hull's armor incidence angle,\n",
+    "assuming an enemy positioned along your current aim direction.\n\n",
+    "Only vehicles with hand-filled data in the mod's whitelist are supported -\n",
+    "for any other vehicle, this HUD simply stays hidden."
+  ],
+  "armorAngle.enabled.body": [
+    "If checked, display this HUD for whitelisted vehicles."
+  ],
+  "armorAngle.debugMode.header": "Debug mode",
+  "armorAngle.debugMode.body": [
+    "If unchecked (default), each slot only shows the incidence angle,\n",
+    "or \"RICOCHET\" if it would ricochet.\n\n",
+    "If checked, also shows PEN/RICOCHET status text and the approximate\n",
+    "effective thickness in mm - more detail, more clutter."
   ]
 }

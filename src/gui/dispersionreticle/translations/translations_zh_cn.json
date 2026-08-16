@@ -201,5 +201,23 @@
   ],
   "reticleExtended.shapes.t-shape.length.note": [
     "负值将反转落弹环的方向。"
+  ],
+  "armorAngle.label": "装甲角度提示（实验性）",
+  "armorAngle.header": "装甲角度提示",
+  "armorAngle.body": [
+    "显示一个小型 HUD，估算假设敌方位于当前瞄准方向时，\n",
+    "自己车体装甲的入射角。\n\n",
+    "只支持模组白名单里手动录入过数据的车辆——\n",
+    "其他车辆此 HUD 会保持隐藏。"
+  ],
+  "armorAngle.enabled.body": [
+    "勾选后，对白名单内的车辆显示此 HUD。"
+  ],
+  "armorAngle.debugMode.header": "调试模式",
+  "armorAngle.debugMode.body": [
+    "不勾选（默认）：每个格子只显示入射角度数字，\n",
+    "会跳弹则显示“RICOCHET”。\n\n",
+    "勾选后：额外显示 PEN/RICOCHET 状态文字和约等效厚度（mm）——\n",
+    "信息更全，但也更多字。"
   ]
 }

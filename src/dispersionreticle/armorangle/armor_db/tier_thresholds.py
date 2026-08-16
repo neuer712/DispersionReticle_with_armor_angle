@@ -12,8 +12,8 @@ TIER_SAFETY_THRESHOLDS = {
     4: (None, None),
     5: (None, None),
     6: (None, None),
-    7: (None, None),
-    8: (None, None),
+    7: (180, 220),
+    8: (230, 270),
     9: (None, None),
     10: (None, None),
 }
